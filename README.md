@@ -1,5 +1,7 @@
 # JSON Database
 
+> You can install it using NPM: `npm i ls-jsondb`
+
 ## Variables
 > Main module declaration:
 ```js
