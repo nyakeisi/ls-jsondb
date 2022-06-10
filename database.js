@@ -192,40 +192,54 @@ class LissaSqueens {
      * @arg {Array} parameters.notallowed - "other" is used only if argument alphabet exists.
      * @arg {Array} parameters.notallowed - Nothing by default.
      */
-    generateToken(length, parameters) { 
-        if (typeof length !== "number") {
-            const typeError = 'parameter must be a Number.'
+
+    generateToken(length, parameters) {
+        if (!length instanceof Number) {
+            const typeError = 'parameter "length" must be a Number.'
             throw new Error(typeError)
         }
-        if (length < 1 || length > 100) {
-            if (length < 0) {
-                var lengthError = 'parameter must be greater than 0.';
+        switch (true) {
+            case (length < 2): {
+                var lengthError = 'parameter "length" must be greater than 1.';
+                throw new Error(lengthError)
             }
-            if (length > 100) {
-                var lengthError = 'parameter must be less than 101.'
+            case (length > 100): {
+                var lengthError = 'parameter "length" must be less than 101.'
+                throw new Error(lengthError)
             }
-            throw new Error(lengthError)
         }
         var result = '';
-        if (!parameters) {
-            var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            var charactersLength = characters.length;
-            for (var i = 0; i < length; i++) {
-                result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        var alphabetDefault = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        switch (parameters && parameters != undefined) {
+            case undefined: {
+                var characters = alphabetDefault;
+                var charactersLength = characters.length;
+                    for (var i = 0; i < length; i++) {
+                        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                    }
+                return result;
             }
-            return result;
-        } else {
-            if (parameters.alphabet) {
-                var characters = parameters.alphabet
-                if (parameters.alphabet.lenght < 2) {
-                    const lengthError = 'parameter must be greater than 1 symbol.'
-                    throw new Error(lengthError)
+            default: {
+                if (parameters.alphabet) {
+                    switch (true) {
+                        case (parameters.alphabet.length < 2): {
+                            var lengthError = '"alphabet"\'s length must be greater than 1 symbol.';
+                            throw new Error(lengthError)
+                        }
+                    }
+                    var characters = parameters.alphabet;
                 }
                 if (parameters.notallowed) {
-                    var upperCase = ""
-                    var lowerCase = ""
-                    var numbers = ""
-                    var others = ""
+                    if (!parameters.notallowed instanceof Array) {
+                        const typeError = 'parameter "notallowed" must be an Array.'
+                        throw new Error(typeError)
+                    }
+                    var characters = parameters.alphabet ? parameters.alphabet : alphabetDefault;
+
+                    var upperCase = "";
+                    var lowerCase = "";
+                    var numbers = "";
+                    var others = "";
                     for (let i = 0; i < characters.length; i++) {
                         if (characters[i].match(/[0-9]/)) {
                             numbers += characters[i];
@@ -236,12 +250,12 @@ class LissaSqueens {
                         if (characters[i].match(/[A-Z]/)) {
                             upperCase += characters[i];
                         }
-                        if (!characters[i].match(/[0-9]/) && !characters[i].match(/[A-Z]/)&& !characters[i].match(/[a-z]/)) {
+                        if (!characters[i].match(/[0-9]/) && !characters[i].match(/[A-Z]/)&& !characters[i].match(/[a-z]/) && parameters.alphabet) {
                             others += characters[i];
                         }
                     }
 
-                    if (parameters.notallowed.every(elem => ['lowerCaseString', 'upperCaseString', 'number', 'other'].includes(elem))) {
+                    if (parameters.notallowed.every(elem => ['lowerCaseString', 'upperCaseString', 'number', parameters.alphabet ? 'other' : null].includes(elem))) {
                         if ((parameters.notallowed).indexOf("lowerCaseString") >= 0) {
                             characters = characters.replace(lowerCase, '');
                         }
@@ -251,46 +265,21 @@ class LissaSqueens {
                         if ((parameters.notallowed).indexOf("number") >= 0) {
                             characters = characters.replace(numbers, '');
                         }
-                        if ((parameters.notallowed).indexOf("other") >= 0) {
+                        if ((parameters.notallowed).indexOf("other") >= 0 && parameters.alphabet) {
                             characters = characters.replace(others, '');
                         }
-                        var charactersLength = characters.length;
-                        for (var i = 0; i < length; i++) {
-                            result += characters.charAt(Math.floor(Math.random() * charactersLength));
-                        }
                     }  else {
-                        const arrayError = '"notallowed" can only read these params: ["lowerCaseString", "upperCaseString", "number", "other"]'
+                        const arrayError = parameters.alphabet
+                            ? '"notallowed" can only read these params: ["lowerCaseString", "upperCaseString", "number", "other"]'
+                            : '"notallowed" can only read these params: ["lowerCaseString", "upperCaseString", "number"]'
                         throw new Error(arrayError)
                     }
-                } else {
-                    var charactersLength = characters.length;
-                    for (var i = 0; i < length; i++) {
-                        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-                    }
+                }
+                var charactersLength = characters.length;
+                for (var i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
                 }
                 return result;
-            }
-            if (parameters.notallowed && !parameters.alphabet) {
-                if (parameters.notallowed.every(elem => ['lowerCaseString', 'upperCaseString', 'number',].includes(elem))) {
-                    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                        if ((parameters.notallowed).indexOf("lowerCaseString") >= 0) {
-                            characters = characters.replace('abcdefghijklmnopqrstuvwxyz', '');
-                        }
-                        if ((parameters.notallowed).indexOf("upperCaseString") >= 0) {
-                            characters = characters.replace('ABCDEFGHIJKLMNOPQRSTUVWXYZ', '');
-                        }
-                        if ((parameters.notallowed).indexOf("number") >= 0) {
-                            characters = characters.replace('0123456789', '');
-                        }
-                    var charactersLength = characters.length;
-                    for (var i = 0; i < length; i++) {
-                        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-                    }
-                    return result;
-                }  else {
-                    const arrayError = '"notallowed" can only read these params: ["lowerCaseString", "upperCaseString", "number"]'
-                    throw new Error(arrayError)
-                }
             }
         }
     }
