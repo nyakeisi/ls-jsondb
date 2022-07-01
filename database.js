@@ -39,6 +39,154 @@ class LissaSqueens {
     }
 
     /**
+     * Remove table inside foolder.
+     * @param {String} tableName Name of the table (/tablePath/tableName.json).
+     */
+    removeTable(tableName) {
+        checkDir(this.tablePath)
+        if (
+            fs.existsSync(
+                this.tablePath+'/'+tableName+'.json', 
+                'utf-8'
+            )
+        ) {
+            fs.unlink(this.tablePath+'/'+tableName+'.json',
+                function(error) {
+                    if (error) throw new Error(error)
+                }
+            );
+            if (
+                fs.existsSync(
+                    tablePath+'/'+tableName+'-rules.json', 
+                    'utf-8'
+                )
+            ) {
+                fs.unlink(this.tablePath+'/'+tableName+'-rules.json',
+                function(error) {
+                    if (error) throw new Error(error)
+                }
+            );
+            }
+            if (this.settings && this.settings.usealerts == true) console.log('Alert: deleted table with name "'+tableName+'".')
+        } else {
+            const fileError = 'Unable to find table ./'+tableName+'.json'
+            throw new Error(fileError) 
+        }
+    }
+
+    /**
+     * Create a new table inside foolder.
+     * @param {String} tableName Name of the table (/tablePath/tableName.json).
+     * @param {Object} parameters Parameters for strict requirements.
+     * @arg {Any} parameter 
+     */
+    createTable(tableName, parameters) {
+        checkDir(this.tablePath)
+        switch (parameters && parameters != undefined) {
+            default: {
+                if (
+                    fs.existsSync(
+                        this.tablePath+'/'+tableName+'.json', 
+                        'utf-8'
+                    )
+                ) {
+                    if (this.settings && this.settings.usealerts == true) console.log('Alert: created a new table "'+tableName+'" with strict mode:\n'+JSON.stringify(parameters, null, '\t'))
+                    let result = {}
+                    fs.writeFileSync(this.tablePath+'/'+tableName+'.json', JSON.stringify(result));
+                    fs.writeFileSync(this.tablePath+'/'+tableName+'-rules.json', JSON.stringify(parameters, null, '\t'));
+                } else {
+                    if (this.settings && this.settings.usealerts == true) console.log('Alert: created a new table "'+tableName+'" with strict mode. Cleared old one.')
+                    let result = {}
+                    fs.writeFileSync(this.tablePath+'/'+tableName+'.json', JSON.stringify(result));
+                    fs.writeFileSync(this.tablePath+'/'+tableName+'-rules.json', JSON.stringify(parameters, null, '\t'));
+                }
+                break;
+            }
+            case undefined: {
+                if (
+                    fs.existsSync(
+                        this.tablePath+'/'+tableName+'.json', 
+                        'utf-8'
+                    )
+                ) {
+                    if (this.settings && this.settings.usealerts == true) console.log('Alert: created a new table "'+tableName+'" withour strict mode.')
+                    let result = {}
+                    fs.writeFileSync(this.tablePath+'/'+tableName+'.json', JSON.stringify(result));
+                } else {
+                    if (this.settings && this.settings.usealerts == true) console.log('Alert: created a new table "'+tableName+'" without strict mode. Cleared old one.')
+                    let result = {}
+                    fs.writeFileSync(this.tablePath+'/'+tableName+'.json', JSON.stringify(result));
+                }
+                break;
+            }
+        }
+    }
+
+    /**
+     * Read whole amount of increments.
+     */
+    readIncrement() {
+        checkDir(this.tablePath)
+        let incr = fs.readFileSync(
+            __dirname+'/increment.json',
+            'utf-8'
+        );
+        incr = JSON.parse(incr)
+        console.log(JSON.stringify(incr, null, '\t'))
+    }
+
+    /**
+     * edit increment value.
+     * @param {String} tableName Name of the table (/tablePath/tableName.json).
+     * @param {Number} value 
+     */
+    editIncrement(tableName, value) {
+        checkDir(this.tablePath)
+        let incr = fs.readFileSync(
+            __dirname+'/increment.json',
+            'utf-8'
+        );
+        incr = JSON.parse(incr)
+        if(!value instanceof Number) {
+            const typeError = '"value" must be a NUMBER type.'
+            throw new Error(typeError) 
+        }
+        if(value < 1) {
+            const valueError = '"value" must be greater than 0.'
+            throw new Error(valueError) 
+        }
+        var ex = false;
+        var doub = false;
+        for (const [key, val] of Object.entries(incr)) {
+            if (key == tableName) ex = true;
+            if (val == value) doub = true;
+        }
+        switch (ex) {
+            case true: {
+                if (doub == true) {
+                    if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Increment value of '+tableName+' == value. Nothing to change.')
+                } else { 
+                    if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Increment value of '+tableName+' is now '+value+'.')
+                    incr[tableName] = value
+                    fs.writeFileSync(
+                        __dirname+'/increment.json',
+                        JSON.stringify(
+                            incr,
+                            null,
+                            '\t'
+                        )
+                    )
+                } 
+                break;
+            }
+            case false: {
+                const listError = 'couldn\'t find.'
+                throw new Error(listError) 
+            }
+        }
+    }
+
+    /**
      * Write a line in database.
      * @param {String} tableName Name of the table (/tablePath/tableName.json).
      * @param {String} key Key in a table to write and then use it as beacon.
@@ -51,8 +199,144 @@ class LissaSqueens {
             this.tablePath+'/'+tableName+'.json', 
             'utf-8'
         );
+        if (data && tableName.endsWith('-rules')) {
+            const fileError = 'Don\'t edit RULE file: ./'+tableName+'.json'
+            throw new Error(fileError) 
+        }
+        if (
+            fs.existsSync(
+                this.tablePath+'/'+tableName+'-rules.json',
+                'utf-8'
+            )
+        ) {
+            var rules = fs.readFileSync(
+                this.tablePath+'/'+tableName+'-rules.json', 
+                'utf-8'
+            );
+        }
+        let incr = fs.readFileSync(
+            __dirname+'/increment.json',
+            'utf-8'
+        );
         data = JSON.parse(data);
         data[key] = value;
+        if (rules) {
+            if (value instanceof Object) {
+                rules = JSON.parse(rules);
+                var isValue = true
+                for (const [input] of Object.entries(value)) {
+                    for (const [arule] of Object.entries(rules)) {
+                        if (input === arule) {
+                            isValue = true
+                        } else {
+                            isValue = false
+                        }
+                    }
+                }
+                if (isValue == false) {
+                    const validError = 'parameters in "value" are not the same as in rule file.'
+                    throw new Error(validError) 
+                }
+                for (const [rule, rulevalue] of Object.entries(rules)) {
+                    if (this.settings && this.settings.usealerts == true) console.log(`${rule}: ${rulevalue}   =>   ${(typeof value[rule]).toUpperCase()} (${(typeof value[rule]).toUpperCase() == rulevalue ? true : false})`)
+                    switch (typeof value[rule]) {
+                        case "string": {
+                            if (rulevalue == 'AUTO_INCREMENT' && value[rule] == "AUTO_INCREMENT") {
+                                console.log('# "'+rule+'" is now AUTO_INCREMENT.')
+                                break;
+                            }
+                            if (rulevalue != 'STRING') {
+                                const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                throw new Error(typeError) 
+                            }
+                            break;
+                        }
+                        case "number": {
+                            if (rulevalue == 'AUTO_INCREMENT' && value[rule] == "AUTO_INCREMENT") {
+                                console.log('# "'+rule+'" is now AUTO_INCREMENT.')
+                                break;
+                            }
+                            if (rulevalue != 'NUMBER') {
+                                const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                throw new Error(typeError) 
+                            }
+                            break;
+                        }
+                        case "object": {
+                            if (rulevalue == 'AUTO_INCREMENT' && value[rule] == "AUTO_INCREMENT") {
+                                console.log('# "'+rule+'" is now AUTO_INCREMENT.')
+                                break;
+                            }
+                            if (rulevalue != 'OBJECT') {
+                                const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                throw new Error(typeError) 
+                            }
+                            break;
+                        }
+                        case "array": {
+                            if (rulevalue == 'AUTO_INCREMENT' && value[rule] == "AUTO_INCREMENT") {
+                                console.log('# "'+rule+'" is now AUTO_INCREMENT.')
+                                break;
+                            }
+                            if (rulevalue != 'ARRAY') {
+                                const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                throw new Error(typeError) 
+                            }
+                            break;
+                        }
+                        case "boolean": {
+                            if (rulevalue == 'AUTO_INCREMENT' && value[rule] == "AUTO_INCREMENT") {
+                                console.log('# "'+rule+'" is now AUTO_INCREMENT.')
+                                break;
+                            }
+                            if (rulevalue != 'BOOLEAN') {
+                                const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                throw new Error(typeError) 
+                            }
+                            break;
+                        }
+                    }
+                }
+            } else {
+                const typeError = '"value" must be an OBJECT in strict mode'
+                throw new Error(typeError) 
+            }
+        }
+        if(data[key] instanceof Object) {
+            for (const [subkey, subvalue] of Object.entries(data[key])) {
+                if (subvalue == 'AUTO_INCREMENT') {
+                    incr = JSON.parse(incr)
+                    !incr[tableName]
+                        ? incr[tableName] = 1
+                        : incr[tableName] = incr[tableName] + 1
+                    fs.writeFileSync(
+                        __dirname+'/increment.json',
+                        JSON.stringify(
+                            incr,
+                            null,
+                            '\t'
+                        )
+                    )
+                    data[key][subkey] = Number(data[key][subkey].replace('AUTO_INCREMENT', incr[tableName]))
+                } 
+            }
+        } else {
+            if (data[key] == 'AUTO_INCREMENT') {
+                incr = JSON.parse(incr)
+                !incr[tableName]
+                    ? incr[tableName] = 1
+                    : incr[tableName] = incr[tableName] + 1
+                fs.writeFileSync(
+                    __dirname+'/increment.json',
+                    JSON.stringify(
+                        incr,
+                        null,
+                        '\t'
+                    )
+                )
+                data[key] = Number(data[key].replace('AUTO_INCREMENT', incr[tableName]))
+            }
+        }
         fs.writeFileSync(
             this.tablePath+'/'+tableName+'.json', 
             JSON.stringify(
@@ -61,7 +345,7 @@ class LissaSqueens {
                 '\t'
             )
         );
-        if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Added a new line to /'+this.tablePath+'/'+tableName+'.json:\n'+JSON.stringify(data[key], null, '\t'))
+        if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Added a new line to /'+this.tablePath+'/'+tableName+'.json:\n'+key+':\t'+JSON.stringify(data[key], null, '\t'))
     }
 
     /**
@@ -97,6 +381,10 @@ class LissaSqueens {
             this.tablePath+'/'+tableName+'.json', 
             'utf-8'
         );
+        if (data && tableName.endsWith('-rules')) {
+            const fileError = 'Don\'t edit RULE file: ./'+tableName+'.json'
+            throw new Error(fileError) 
+        }
         if (
             !JSON.parse(data)[key] || JSON.parse(data)[key] == undefined
         ) {
@@ -118,13 +406,82 @@ class LissaSqueens {
         let data = fs.readFileSync(
             this.tablePath+'/'+tableName+'.json', 
             'utf-8'
-        );
+        )
+        if (data && tableName.endsWith('-rules')) {
+            const fileError = 'Don\'t edit RULE file: ./'+tableName+'.json'
+            throw new Error(fileError) 
+        }
+        if (
+            fs.existsSync(
+                this.tablePath+'/'+tableName+'-rules.json',
+                'utf-8'
+            )
+        ) {
+            var rules = fs.readFileSync(
+                this.tablePath+'/'+tableName+'-rules.json', 
+                'utf-8'
+            );
+        }
         data = JSON.parse(data);
         if (!data[key]) {
-            const keyError = 'Can\'t find "'+key+'" key in database. Unable to change it.'
+            const keyError = 'can\'t find "'+key+'" key in database. Unable to change it.'
             throw new Error(keyError)
         }
-        if (typeof data[key] !== 'object' && subvalue && subvalue != null) {
+        if (rules) {
+            if (subvalue) {
+                rules = JSON.parse(rules);
+                for (const [rule, rulevalue] of Object.entries(rules)) {
+                    if (rule === value) {
+                        console.log(`${rule}: ${rulevalue}   =>   ${(typeof value).toUpperCase()} (${rulevalue === (typeof value).toUpperCase() ? true : false})`)
+                        if (subvalue == "AUTO_INCREMENT") {
+                            const valueError = 'don\'t use "'+subvalue+'" value in this function. If its already stated as AUTO_INCREMENT, why do you need to change it?'
+                            throw new Error(valueError)
+                        }
+                        switch (typeof subvalue) {
+                            case "string": {
+                                if (rulevalue != 'STRING') {
+                                    const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                    throw new Error(typeError) 
+                                }
+                                break;
+                            }
+                            case "number": {
+                                if (rulevalue != 'NUMBER') {
+                                    const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                    throw new Error(typeError) 
+                                }
+                                break;
+                            }
+                            case "object": {
+                                if (rulevalue != 'OBJECT') {
+                                    const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                    throw new Error(typeError) 
+                                }
+                                break;
+                            }
+                            case "array": {
+                                if (rulevalue != 'ARRAY') {
+                                    const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                    throw new Error(typeError) 
+                                }
+                                break;
+                            }
+                            case "boolean": {
+                                if (rulevalue != 'BOOLEAN') {
+                                    const typeError = 'in rule-file "'+value[rule]+'" is instance of '+rulevalue
+                                    throw new Error(typeError) 
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else {
+                const argsError = 'can\'t edit whole table in strict mode. Use subvalue instead.'
+                throw new Error(argsError) 
+            }
+        }
+        if (data[key] instanceof Object && subvalue && subvalue != null) {
             data[key][value] = subvalue;
             fs.writeFileSync(
                 this.tablePath+'/'+tableName+'.json', 
@@ -145,7 +502,7 @@ class LissaSqueens {
                 )
             );
         }
-        if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Edited a line in /'+this.tablePath+'/'+tableName+'.json:\n'+JSON.stringify(data[key], null, '\t'))
+        if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Edited a line in /'+this.tablePath+'/'+tableName+'.json:\n'+key+':\t'+JSON.stringify(data[key], null, '\t'))
     }
 
     /** 
@@ -160,6 +517,10 @@ class LissaSqueens {
             this.tablePath+'/'+tableName+'.json', 
             'utf-8'
         );
+        if (data && tableName.endsWith('-rules')) {
+            const fileError = 'Don\'t edit RULE file: ./'+tableName+'.json'
+            throw new Error(fileError) 
+        }
         if (
             !JSON.parse(data)[key]
         ) {
@@ -177,7 +538,7 @@ class LissaSqueens {
                 '\t'
             )
         );
-        if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Removed a line from /'+this.tablePath+'/'+tableName+'.json:\n'+oldResult+'\nWARNING: THIS IS REMOVED LINE!')
+        if (this.settings && this.settings.usealerts == true) console.log('\nAlert: Removed a line from /'+this.tablePath+'/'+tableName+'.json:\n'+key+':\t'+oldResult+'\nWARNING: THIS IS REMOVED LINE!')
     }
 
     /**
