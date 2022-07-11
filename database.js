@@ -397,7 +397,7 @@ class LissaSqueens {
      * Edit single value of this key in database.
      * @param {String} tableName Name of the table (/tablePath/tableName.json).
      * @param {String} key Key in a table to write and then use it as beacon.
-     * @param {Any} value 
+     * @param {Any} value Can work as subkey for subvalue
      * @param {Any} subvalue New value of this subkey.
      */
      edit(tableName, key, value, subvalue) {
@@ -481,8 +481,13 @@ class LissaSqueens {
                 throw new Error(argsError) 
             }
         }
-        if (data[key] instanceof Object && subvalue && subvalue != null) {
-            data[key][value] = subvalue;
+        console.log(subvalue)
+        if (data[key] instanceof Object) {
+            if (!String(subvalue)) {
+                data[key] = value;
+            } else {
+                data[key][value] = subvalue;
+            }
             fs.writeFileSync(
                 this.tablePath+'/'+tableName+'.json', 
                 JSON.stringify(
