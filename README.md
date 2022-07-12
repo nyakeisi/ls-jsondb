@@ -48,7 +48,7 @@ const second = new database("./second");
 
 ### write(tablename, key, value)
 
-**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object.<br />**value**(Any) is a value _<sub>lol</sub>_<br /><br />Returns **Any**
+**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object.<br />**value**(Any) is a value _<sub>lol</sub>_
 
 ```js
 {
