@@ -48,7 +48,7 @@ const second = new database("./second");
 
 ### write(tablename, key, value)
 
-**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object:
+**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object.<br />**value**(Any) is a value _<sub>lol</sub>_<br /><br />Returns **Any**
 
 ```js
 {
@@ -56,11 +56,9 @@ const second = new database("./second");
 }
 ```
 
-**value**(Any) is a value _<sub>lol</sub>_
-
 ### read(tablename, key)
 
-**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object:
+**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object.<br /><br />Returns **Any**
 
 ```js
 {
@@ -70,7 +68,7 @@ const second = new database("./second");
 
 ### edit(tablename, key, value, subvalue?)
 
-**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object:
+**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object.<br />**value**(Any) is a value that you are editing inside of an Object.<br />**subvalue**(Any)_(not necessary)_ a value of parent value.<br />UPDATED: if subvalue === null or !subvalue it changes whole key.
 
 ```js
 {
@@ -78,11 +76,9 @@ const second = new database("./second");
 }
 ```
 
-**value**(Any) is a value that you are editing inside of an Object.<br />**subvalue**(Any)_(not necessary)_ a value of parent value.<br />UPDATED: if subvalue === null or !subvalue it changes whole key.
-
 ### remove(tablename, key)
 
-**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object:
+**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object.
 
 ```js
 {
@@ -90,9 +86,19 @@ const second = new database("./second");
 }
 ```
 
+### check(tablename, key)
+
+**tablename**(String) is a .json file inside path you declared.<br />**key**(String) is a header of an Object.<br /><br />Returns **Boolean**
+
+```js
+{
+  key: value;
+}
+```
+
 ### readIncrement()
 
-returns stringified Object of all increment values.
+returns stringified Object of all increment values in console.
 
 ### editIncrement(tableName, value)
 
@@ -100,7 +106,7 @@ returns stringified Object of all increment values.
 
 ### generateToken(length, {parameters?})
 
-**length**(Number) is a length of the token.<br />**parameters**(Object)_(not necessary)_:
+**length**(Number) is a length of the token.<br />**parameters**(Object)_(not necessary)_.<br />**alphabet** is a String value of all possible characters. If not stanted, uses "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" by default.<br />**notallowed** is an Array ['upperCaseString', 'lowerCaseString', 'numbers, 'others?'] of letters, that won't be used by the generator.<br />UPDATED: "others" works only if parameter alphabet stated.<br /><br />Returns **String**
 
 ```js
 {
@@ -108,8 +114,6 @@ returns stringified Object of all increment values.
   notallowed: Array
 }
 ```
-
-**alphabet** is a String value of all possible characters. If not stanted, uses "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" by default.<br />**notallowed** is an Array ['upperCaseString', 'lowerCaseString', 'numbers, 'others?'] of letters, that won't be used by the generator.<br />UPDATED: "others" works only if parameter alphabet stated.
 
 ## other parameters
 
